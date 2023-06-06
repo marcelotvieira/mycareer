@@ -1,0 +1,68 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+enum Role {
+  vendedor
+  administrador
+}
+
+enum WeightType {
+  Kg
+  g
+  ml
+  L
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  role      Role     @default(vendedor)
+  password  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  sales     Sale[]
+}
+
+model Product {
+  id            Int        @id @default(autoincrement())
+  name          String
+  description   String
+  price         Decimal
+  weight        Float
+  weightType    WeightType
+  saleItems     SaleItem[]
+  stockQuantity Int
+  categories    Category[] @relation("ProductCategories")
+}
+
+model Category {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  products    Product[] @relation("ProductCategories")
+}
+
+model Sale {
+  id         Int        @id @default(autoincrement())
+  userId     Int
+  user       User       @relation(fields: [userId], references: [id])
+  totalPrice Decimal
+  saleDate   DateTime
+  items      SaleItem[]
+}
+
+model SaleItem {
+  id        Int     @id @default(autoincrement())
+  saleId    Int
+  sale      Sale    @relation(fields: [saleId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  Int
+}
